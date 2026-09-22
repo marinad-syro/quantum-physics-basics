@@ -1,5 +1,237 @@
-const modes={wave:{title:'Wave behavior',description:'A particle is described by a wave-like probability pattern. Where the wave is strongest, finding the particle is more likely.'},particle:{title:'Particle detection',description:'A measurement can reveal the quantum object as a localized particle at one point.'},superposition:{title:'Superposition',description:'Before measurement, a system can be described as a combination of possible states.'},uncertainty:{title:'Uncertainty principle',description:'The more precisely we know a particle’s position, the less precisely we can know its momentum, and vice versa.'}};
-const canvas=document.querySelector('#quantumCanvas');const ctx=canvas.getContext('2d');let currentMode='wave';let frame;
-function draw(){const w=canvas.width,h=canvas.height,t=performance.now()/1000;ctx.clearRect(0,0,w,h);const bg=ctx.createLinearGradient(0,0,w,h);bg.addColorStop(0,'#07111f');bg.addColorStop(1,'#0d1d31');ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);ctx.strokeStyle='rgba(124,199,255,.16)';for(let y=30;y<h;y+=30){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}const mid=h/2;ctx.beginPath();for(let x=0;x<=w;x+=3){const amp=currentMode==='uncertainty'?46:30;const y=mid+Math.sin(x*.04+t*(currentMode==='wave'?3:5))*amp;x?ctx.lineTo(x,y):ctx.moveTo(x,y)}ctx.strokeStyle='#7cc7ff';ctx.lineWidth=2.5;ctx.shadowColor='#7cc7ff';ctx.shadowBlur=18;ctx.stroke();ctx.shadowBlur=0;if(currentMode==='particle'||currentMode==='superposition'){ctx.beginPath();ctx.fillStyle=currentMode==='particle'?'#7ef6d8':'#a78bfa';ctx.arc(w/2+Math.sin(t*2.5)*(currentMode==='particle'?80:120),mid+Math.cos(t*2.6)*30,11,0,Math.PI*2);ctx.fill()}if(currentMode==='uncertainty'){ctx.strokeStyle='#ffd166';ctx.lineWidth=2;ctx.beginPath();for(let x=20;x<w-20;x+=16){const spread=38+Math.sin((x+t*90)*.08)*22;ctx.moveTo(x,mid-spread);ctx.lineTo(x,mid+spread)}ctx.stroke()}frame=requestAnimationFrame(draw)}
-function setMode(mode){currentMode=mode;document.querySelectorAll('.mode-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));document.querySelector('#modeTitle').textContent=modes[mode].title;document.querySelector('#modeDescription').textContent=modes[mode].description)}document.querySelectorAll('.mode-btn').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));setMode('wave');draw();
-const questions=[['What does the wave function describe?',['The probability amplitude of a quantum system','The exact path of a particle','The speed of light','The temperature of a gas'],0,'The wave function encodes probabilities, not an exact classical path.'],['Which idea says particles can act like waves and particles?',['Wave-particle duality','Thermal equilibrium','Galilean relativity','Newtonian inertia'],0,'Quantum objects can show both wave-like and particle-like behavior.'],['What is superposition?',['A system having multiple possible states before measurement','Two particles merging','A force that prevents motion','A constant speed'],0,'Superposition means multiple possibilities are represented together before measurement.'],['What best matches uncertainty?',['Some pairs of properties cannot both be known exactly','Particles always move in circles','Energy cannot transfer','Light changes speed in a vacuum'],0,'Position and momentum are a classic example.'],['What is entanglement?',['A correlation between quantum systems','A collision between atoms','Gravity alone','Random gas motion'],0,'Entangled systems can produce strongly correlated measurement results.']];let q=0;let score=0;let answered=false;const progress=document.querySelector('#quizProgress'),question=document.querySelector('#questionText'),answers=document.querySelector('#answerChoices'),feedback=document.querySelector('#feedback'),next=document.querySelector('#nextBtn');function renderQuestion(){answered=false;const item=questions[q];progress.textContent=`Question ${q+1} of ${questions.length}`;question.textContent=item[0];answers.innerHTML='';feedback.className='feedback hidden';next.classList.add('hidden');item[1].forEach((text,i)=>{const b=document.createElement('button');b.className='answer-btn';b.textContent=text;b.addEventListener('click',()=>answer(i));answers.appendChild(b)})}function answer(i){if(answered)return;answered=true;const item=questions[q];document.querySelectorAll('.answer-btn').forEach((b,index)=>{b.disabled=true;if(index===item[2])b.classList.add('correct');if(index===i&&i!==item[2])b.classList.add('incorrect')});if(i===item[2]){score++;feedback.className='feedback success';feedback.textContent=`Correct! ${item[3]}`}else{feedback.className='feedback error';feedback.textContent=`Not quite. ${item[3]}`}next.textContent=q===questions.length-1?'See results':'Next question';next.classList.remove('hidden')}next.addEventListener('click',()=>{if(q<questions.length-1){q++;renderQuestion();return}progress.textContent='Quiz complete';question.textContent=`Your score: ${score} / ${questions.length}`;answers.innerHTML='';feedback.className=score>=3?'feedback success':'feedback error';feedback.textContent=score===questions.length?'Excellent work — you’ve got the basics down.':score>=3?'Nice job. You understand most of the core ideas.':'Good start. Review the concepts and try again soon.';next.textContent='Restart quiz';next.onclick=()=>{q=0;score=0;next.onclick=null;renderQuestion()}});renderQuestion();
+(() => {
+  'use strict';
+
+  const modes = {
+    wave: {
+      title: 'Wave behavior',
+      description: 'A particle is described by a wave-like probability pattern. Where the wave is strongest, finding the particle is more likely.'
+    },
+    particle: {
+      title: 'Particle detection',
+      description: 'When measured, a quantum object appears as a localized particle at one point rather than spread everywhere at once.'
+    },
+    superposition: {
+      title: 'Superposition',
+      description: 'Before measurement, a system can be represented as a combination of possible states. Measurement produces one outcome.'
+    },
+    uncertainty: {
+      title: 'Uncertainty principle',
+      description: 'The more precisely we know a particle’s position, the less precisely we can know its momentum, and vice versa.'
+    }
+  };
+
+  const questions = [
+    {
+      question: 'What does the wave function describe?',
+      answers: ['The probability amplitude of a quantum system', 'The exact path of a particle', 'The speed of light', 'The temperature of a gas'],
+      correct: 0,
+      explanation: 'The wave function encodes probabilities, not an exact classical trajectory.'
+    },
+    {
+      question: 'What is wave-particle duality?',
+      answers: ['Quantum objects can show both wave-like and particle-like behavior', 'All waves are made of particles', 'Particles always move in circles', 'Light can only behave as a particle'],
+      correct: 0,
+      explanation: 'The behavior we observe depends on how the quantum system is measured.'
+    },
+    {
+      question: 'What is superposition?',
+      answers: ['A system being represented by multiple possible states before measurement', 'Two particles merging permanently', 'A force that prevents movement', 'A particle moving at constant speed'],
+      correct: 0,
+      explanation: 'Superposition allows multiple possibilities to coexist until an observation is made.'
+    },
+    {
+      question: 'What does the uncertainty principle tell us?',
+      answers: ['Some pairs of properties cannot both be known exactly at the same time', 'Particles always move randomly', 'Energy cannot be transferred', 'Nothing can be measured'],
+      correct: 0,
+      explanation: 'Position and momentum are a familiar example of such a pair.'
+    },
+    {
+      question: 'What is quantum entanglement?',
+      answers: ['A correlation between quantum systems that can persist across distance', 'A collision between atoms', 'An effect caused by gravity alone', 'Random motion in a gas'],
+      correct: 0,
+      explanation: 'Entangled systems share a joint quantum state, producing correlated measurement results.'
+    }
+  ];
+
+  function init() {
+    const canvas = document.querySelector('#quantumCanvas');
+    const modeTitle = document.querySelector('#modeTitle');
+    const modeDescription = document.querySelector('#modeDescription');
+    const modeButtons = document.querySelectorAll('.mode-btn');
+
+    let currentMode = 'wave';
+
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+
+      function draw() {
+        const width = canvas.width;
+        const height = canvas.height;
+        const time = performance.now() / 1000;
+        const centerY = height / 2;
+
+        ctx.clearRect(0, 0, width, height);
+        const background = ctx.createLinearGradient(0, 0, width, height);
+        background.addColorStop(0, '#07111f');
+        background.addColorStop(1, '#0d1d31');
+        ctx.fillStyle = background;
+        ctx.fillRect(0, 0, width, height);
+
+        ctx.strokeStyle = 'rgba(124, 199, 255, .14)';
+        ctx.lineWidth = 1;
+        for (let y = 30; y < height; y += 30) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(width, y);
+          ctx.stroke();
+        }
+
+        const amplitude = currentMode === 'uncertainty' ? 48 : 30;
+        const speed = currentMode === 'wave' ? 3 : 5;
+        ctx.beginPath();
+        for (let x = 0; x <= width; x += 3) {
+          const y = centerY + Math.sin(x * 0.04 + time * speed) * amplitude;
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = '#7cc7ff';
+        ctx.lineWidth = 3;
+        ctx.shadowColor = 'rgba(124, 199, 255, .7)';
+        ctx.shadowBlur = 16;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        if (currentMode === 'particle' || currentMode === 'superposition') {
+          const x = width / 2 + Math.sin(time * 2.5) * (currentMode === 'superposition' ? 120 : 80);
+          const y = centerY + Math.cos(time * 2.6) * 28;
+          ctx.beginPath();
+          ctx.fillStyle = currentMode === 'superposition' ? '#a78bfa' : '#7ef6d8';
+          ctx.arc(x, y, 11, 0, Math.PI * 2);
+          ctx.shadowColor = ctx.fillStyle;
+          ctx.shadowBlur = 18;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+
+        if (currentMode === 'uncertainty') {
+          ctx.strokeStyle = 'rgba(255, 209, 102, .75)';
+          ctx.lineWidth = 2;
+          for (let x = 20; x < width - 20; x += 16) {
+            const spread = 38 + Math.sin((x + time * 90) * 0.08) * 20;
+            ctx.beginPath();
+            ctx.moveTo(x, centerY - spread);
+            ctx.lineTo(x, centerY + spread);
+            ctx.stroke();
+          }
+        }
+
+        requestAnimationFrame(draw);
+      }
+
+      function selectMode(mode) {
+        if (!modes[mode]) return;
+        currentMode = mode;
+        modeButtons.forEach((button) => button.classList.toggle('active', button.dataset.mode === mode));
+        if (modeTitle) modeTitle.textContent = modes[mode].title;
+        if (modeDescription) modeDescription.textContent = modes[mode].description;
+      }
+
+      modeButtons.forEach((button) => button.addEventListener('click', () => selectMode(button.dataset.mode)));
+      selectMode('wave');
+      draw();
+    }
+
+    const progress = document.querySelector('#quizProgress');
+    const questionText = document.querySelector('#questionText');
+    const answerChoices = document.querySelector('#answerChoices');
+    const feedback = document.querySelector('#feedback');
+    const nextButton = document.querySelector('#nextBtn');
+
+    if (!progress || !questionText || !answerChoices || !feedback || !nextButton) return;
+
+    let questionIndex = 0;
+    let score = 0;
+    let answered = false;
+
+    function renderQuestion() {
+      const item = questions[questionIndex];
+      answered = false;
+      progress.textContent = `Question ${questionIndex + 1} of ${questions.length}`;
+      questionText.textContent = item.question;
+      answerChoices.innerHTML = '';
+      feedback.textContent = '';
+      feedback.className = 'feedback hidden';
+      nextButton.classList.add('hidden');
+
+      item.answers.forEach((answer, index) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'answer-btn';
+        button.textContent = answer;
+        button.addEventListener('click', () => chooseAnswer(index));
+        answerChoices.appendChild(button);
+      });
+    }
+
+    function chooseAnswer(selectedIndex) {
+      if (answered) return;
+      answered = true;
+      const item = questions[questionIndex];
+      const buttons = [...answerChoices.querySelectorAll('.answer-btn')];
+      buttons.forEach((button, index) => {
+        button.disabled = true;
+        if (index === item.correct) button.classList.add('correct');
+        if (index === selectedIndex && index !== item.correct) button.classList.add('incorrect');
+      });
+
+      if (selectedIndex === item.correct) {
+        score += 1;
+        feedback.className = 'feedback success';
+        feedback.textContent = `Correct! ${item.explanation}`;
+      } else {
+        feedback.className = 'feedback error';
+        feedback.textContent = `Not quite. ${item.explanation}`;
+      }
+      nextButton.textContent = questionIndex === questions.length - 1 ? 'See results' : 'Next question';
+      nextButton.classList.remove('hidden');
+    }
+
+    function showResults() {
+      progress.textContent = 'Quiz complete';
+      questionText.textContent = `Your score: ${score} / ${questions.length}`;
+      answerChoices.innerHTML = '';
+      feedback.className = score >= 3 ? 'feedback success' : 'feedback error';
+      feedback.textContent = score === questions.length
+        ? 'Excellent work — you have mastered the basics!'
+        : score >= 3
+          ? 'Nice job — you understand most of the core ideas.'
+          : 'Good start — review the concepts and try again.';
+      nextButton.textContent = 'Restart quiz';
+      nextButton.classList.remove('hidden');
+      nextButton.onclick = () => {
+        questionIndex = 0;
+        score = 0;
+        nextButton.onclick = nextQuestion;
+        renderQuestion();
+      };
+    }
+
+    function nextQuestion() {
+      if (questionIndex < questions.length - 1) {
+        questionIndex += 1;
+        renderQuestion();
+      } else {
+        showResults();
+      }
+    }
+
+    nextButton.addEventListener('click', nextQuestion);
+    renderQuestion();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
