@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="An interactive beginner-friendly introduction to quantum physics." />
+  <title>Quantum Physics Basics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <header class="topbar">
+      <a class="brand" href="#top"><span class="brand-mark">Q</span> Quantum Basics</a>
+      <nav><a href="#concepts">Concepts</a><a href="#simulator">Simulator</a><a href="#quiz">Quiz</a></nav>
+    </header>
+
+    <main id="top">
+      <section class="hero">
+        <div>
+          <p class="eyebrow">A beginner-friendly guide</p>
+          <h1>Explore the strange world of quantum physics</h1>
+          <p class="subtitle">Learn the big ideas behind waves, particles, uncertainty, and superposition through simple explanations and interactive visuals.</p>
+          <div class="actions"><a class="primary-btn" href="#concepts">Start learning</a><a class="secondary-btn" href="#quiz">Take the quiz</a></div>
+        </div>
+        <div class="hero-visual" aria-label="Animated quantum illustration"><div class="ring ring-one"></div><div class="ring ring-two"></div><div class="core"></div><div class="electron electron-one"></div><div class="electron electron-two"></div><div class="pulse"></div></div>
+      </section>
+
+      <section id="concepts" class="section"><p class="eyebrow">Core concepts</p><h2>Four ideas that changed how we understand reality</h2><div class="card-grid">
+        <article class="card"><div class="icon">◌</div><h3>Wave-particle duality</h3><p>Electrons and other tiny objects can behave like waves or particles, depending on how we measure them.</p></article>
+        <article class="card"><div class="icon">✦</div><h3>Superposition</h3><p>Before measurement, a quantum system can exist as a combination of multiple possible states.</p></article>
+        <article class="card"><div class="icon">△</div><h3>Uncertainty</h3><p>Some properties, such as position and momentum, cannot both be known with perfect precision.</p></article>
+        <article class="card"><div class="icon">∿</div><h3>Entanglement</h3><p>Quantum objects can become linked so that their measurement results remain correlated across distance.</p></article>
+      </div></section>
+
+      <section id="simulator" class="section"><p class="eyebrow">Interactive explorer</p><h2>See how quantum states behave</h2><div class="panel"><div class="controls"><button class="mode-btn active" data-mode="wave">Wave</button><button class="mode-btn" data-mode="particle">Particle</button><button class="mode-btn" data-mode="superposition">Superposition</button><button class="mode-btn" data-mode="uncertainty">Uncertainty</button></div><canvas id="quantumCanvas" width="740" height="320" aria-label="Animated quantum simulation"></canvas><h3 id="modeTitle">Wave behavior</h3><p id="modeDescription">A particle is described by a wave-like probability pattern. Where the wave is strongest, finding the particle is more likely.</p></div></section>
+
+      <section id="quiz" class="section"><p class="eyebrow">Quick quiz</p><h2>Test your understanding</h2><div class="quiz-card"><div id="quizProgress" class="progress"></div><h3 id="questionText"></h3><div id="answerChoices" class="answers"></div><div id="feedback" class="feedback hidden"></div><button id="nextBtn" class="primary-btn hidden">Next question</button></div></section>
+    </main>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
